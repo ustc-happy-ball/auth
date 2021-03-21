@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package auth;
+
+service Auth {
+  rpc SignUp (SignInRequest) returns (SignUpResponse) {}
+  rpc SignIn (SignInRequest) returns (SignInResponse) {}
+
+  // Used for test
+  rpc PingPong (Ping) returns (Pong) {}
+}
+
+// Used for sign up, support for mobilePhone currently
+message SignUpRequest {
+  string mobilePhone = 1;
+  string password = 2;
+}
+
+message SignUpResponse {
+  bool isSignUp = 1;
+  string playerId = 2;
+}
+
+// Used for sign in, support for mobilePhone currently
+message SignInRequest {
+  string mobilePhone = 1;
+  string password = 2;
+}
+
+
+message SignInResponse {
+  bool isLogin = 1;
+  string playerId = 2;
+}
+
+// Used for test
+message Ping {
+  string request = 1;
+}
+
+message Pong {
+  string response = 1;
+}
