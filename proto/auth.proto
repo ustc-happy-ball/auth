@@ -33,6 +33,18 @@ message SignInResponse {
   string playerId = 2;
 }
 
+// Account full info
+message  Account {
+  string id = 1;
+  string mobilePhone = 2;
+  string name = 3;
+  string password = 4;
+  int32  level = 5;
+  string region = 6;
+  string qq = 7;
+  string wechat = 8;
+}
+
 // Used for test
 message Ping {
   string request = 1;
