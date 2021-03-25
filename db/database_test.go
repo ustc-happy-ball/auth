@@ -1,8 +1,10 @@
-package model
+package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/imilano/auth/config"
+	"github.com/imilano/auth/model"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"testing"
@@ -40,15 +42,16 @@ func TestMongoConnection(t *testing.T) {
 
 // Test if we can insert a document to mongo
 func TestMongoInsert(t *testing.T) {
-	db,err := New(config.DB,config.COLLECTION)
+	db,err := New(config.DB,config.ACCOUNT)
+
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	accounts := []*Account{
-		&Account{
+	accounts := []*model.Account{
+		&model.Account{
 			MobilePhone: "11111",
-			Password: "2222",
+			LoginPassword: "2222",
 			CreateAt: time.Now(),
 		},
 	}
@@ -63,10 +66,12 @@ func TestMongoInsert(t *testing.T) {
 			log.Println(err.Error())
 		}
 
-		db.QueryAccountByMobilePhone()
+		r,err := db.QueryAccountById(ctx,res.InsertedID)
+		if err != nil {
+			log.Println(err)
+		}
 
-
-
+		fmt.Printf("Fetch %+v\n",r)
 
 	}
 
