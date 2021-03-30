@@ -17,12 +17,12 @@ type DataBase struct {
 
 // New create db and collection and return db  to caller
 func New(dbname string, collection string) (*DataBase, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DBURI))
 	if err != nil {
-		log.Println("fail to connect to mongo")
+		log.Println("fail to connect to mongodb")
 	}
 
 	defer func() {
@@ -31,12 +31,8 @@ func New(dbname string, collection string) (*DataBase, error) {
 		}
 	}()
 
-	err = client.Database(dbname).CreateCollection(ctx, collection)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	return &DataBase{client.Database(dbname)}, nil
+	coll := client.Database(dbname).Collection(collection)
+	return &DataBase{coll.Database()}, nil
 }
 
 // Insert account
@@ -53,7 +49,7 @@ func (d *DataBase) InsertOneAccount(ctx context.Context, account *model.Account)
 func (d *DataBase) QueryAccountByMobilePhone(ctx context.Context, mobilePhone string) (*model.Account, error) {
 	var res *model.Account
 
-	filter := bson.D{{"mobilePhone", mobilePhone}}
+	filter := bson.D{{"mobilephone", mobilePhone}}
 	err := d.db.Collection(config.ACCOUNT).FindOne(ctx, filter).Decode(res)
 	if err != nil {
 		return nil, err
@@ -79,7 +75,7 @@ func (d *DataBase) QueryAccountByAccountFullInfo(ctx context.Context, account *m
 func (d *DataBase) QueryAccountById(ctx context.Context, id interface{}) (*model.Account, error) {
 	var a *model.Account
 
-	filter := bson.D{{"_id", id}}
+	filter := bson.D{{"id", id}}
 	err := d.db.Collection(config.ACCOUNT).FindOne(ctx, filter).Decode(a)
 	if err != nil {
 		return nil, err
@@ -89,18 +85,18 @@ func (d *DataBase) QueryAccountById(ctx context.Context, id interface{}) (*model
 
 func toBson(account *model.Account) bson.D {
 	return bson.D{
-		{"ID", account.ID},
-		{"MobilePhone", account.MobilePhone},
-		{"LoginPassword", account.LoginPassword},
-		{"CreateAt", account.CreateAt},
-		{"Name", account.Name},
-		{"Level", account.Level},
-		{"Deleted", account.Deleted},
-		{"Region", account.Region},
-		{"AccountAvatar", account.AccountAvatar},
-		{"Skin", account.Skin},
-		{"QQ", account.QQ},
-		{"WeChat", account.WeChat},
-		{"UpdateAt", account.UpdateAt},
+		{"id", account.ID},
+		{"mobilephone", account.MobilePhone},
+		{"loginpassword", account.LoginPassword},
+		{"createat", account.CreateAt},
+		{"name", account.Name},
+		{"level", account.Level},
+		{"deleted", account.Deleted},
+		{"region", account.Region},
+		{"accountAvatar", account.AccountAvatar},
+		{"skin", account.Skin},
+		{"qq", account.QQ},
+		{"wechat", account.WeChat},
+		{"updateat", account.UpdateAt},
 	}
 }

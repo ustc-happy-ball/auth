@@ -9,6 +9,6 @@ var (
 
 	// auth service address
 	IP = "127.0.0.1"
-	PORT = "7891"
+	PORT = "22222"
 )
 
