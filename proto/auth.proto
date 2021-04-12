@@ -2,12 +2,43 @@ syntax = "proto3";
 
 package auth;
 
-service Auth {
-  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
-  rpc SignIn (SignInRequest) returns (SignInResponse) {}
+//service Auth {
+//  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
+//  rpc SignIn (SignInRequest) returns (SignInResponse) {}
+//
+//  // Used for test
+//  rpc PingPong (Ping) returns (Pong) {}
+//}
 
-  // Used for test
-  rpc PingPong (Ping) returns (Pong) {}
+message GMessage {
+  MsgType msgType = 1; //消息类型
+  MsgType msgCode = 2; //消息码 用于表示具体业务类型 参照msgenum.proto中的GAME_MSG_CODE枚举
+//  int32 sessionId = 3; //会话ID
+//  int32 seqId = 4; //消息的编号
+  Request request = 3; //请求类型
+  Response response = 4; //答复类型
+  int64 sendTime = 5; //消息发送时间，用于测试网络时延
+}
+
+message Request {
+  SignInRequest signInRequest = 1;
+  SignUpRequest signUpRequest = 2;
+}
+
+message  Response {
+  SignInResponse signInResponse = 1;
+  SignUpResponse signUpResponse = 2;
+}
+
+enum MsgType {
+  NOTIFY = 0;
+  REQUEST = 1;
+  RESPONSE = 2;
+}
+
+enum MsgCode {
+  SIGNIN = 0;
+  SIGNUP = 1;
 }
 
 // Used for sign up, support for mobilePhone currently
@@ -19,6 +50,7 @@ message SignUpRequest {
 message SignUpResponse {
   bool isSignUp = 1;
   int64 playerId = 2;
+  string address = 3;
 }
 
 // Used for sign in, support for mobilePhone currently
@@ -31,6 +63,7 @@ message SignInRequest {
 message SignInResponse {
   bool isLogin = 1;
   int64 playerId = 2;
+  string address = 3;
 }
 
 // Account full info
