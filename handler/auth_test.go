@@ -1,78 +1,95 @@
 package handler
 
 import (
-	"context"
+	"fmt"
+	"github.com/golang/protobuf/proto"
 	"github.com/imilano/auth/config"
-	"google.golang.org/grpc"
+	pb "github.com/imilano/auth/proto"
+	"github.com/xtaci/kcp-go"
 	"log"
 	"testing"
-	pb "github.com/imilano/auth/proto"
 	"time"
 )
 
-func TestSignIn(t *testing.T) {
-	req := &pb.SignInRequest{
-		MobilePhone: "15251859785",
-		Password:    "123456",
+func receive(sess *kcp.UDPSession) {
+	for {
+		buf := make([]byte,1024)
+		n,err := sess.Read(buf)
+		if err != nil {
+			log.Println(err)
+		}
+
+		msg := &pb.GMessage{}
+		err = proto.Unmarshal(buf[:n],msg)
+		if err != nil {
+			log.Println(err)
+		}
+
+		switch msg.MsgCode {
+		case pb.MsgCode_PING_PONG:
+		case pb.MsgCode_SIGN_IN:
+			log.Println("Receive signIn response")
+			log.Printf("%+v",msg.Response.SignInResponse)
+		case pb.MsgCode_SIGN_UP:
+			log.Println("Receive signUp response")
+			log.Printf("%+v",msg.Response.SignUpResponse)
+		case pb.MsgCode_REGISTER_ADDR:
+			log.Println("Receive register response")
+			log.Printf("%+v",msg.Response.RegisterResponse)
+		default:
+			log.Println("Unknown response type")
+		}
 	}
-
-	conn,err := grpc.Dial("localhost:"+config.PORT,grpc.WithInsecure(),grpc.WithBlock())
-	defer  conn.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	c := pb.NewAuthClient(conn)
-	ctx,cancel := context.WithTimeout(context.Background(), 4*time.Second)
-	defer cancel()
-
-	rsp,err := c.SignIn(ctx,req)
-	if err != nil {
-		log.Println(err)
-	}
-
-	log.Printf("%v",rsp.GetPlayerId())
 }
 
-func TestSignUp(t *testing.T) {
-	req := &pb.SignUpRequest{
-		MobilePhone: "15251859785",
-		Password:    "123456",
+
+func TestAuth(t *testing.T) {
+	fmt.Println("Starting to test auth service")
+	var rand int
+
+	if sess,err :=  kcp.DialWithOptions(config.IP+":"+config.PORT,nil,0,0); err == nil {
+		go receive(sess)
+		for  {
+			log.Println("Preparing data to send")
+			req  := &pb.GMessage{
+				MsgType:  pb.MsgType_REQUEST,
+			}
+
+			switch rand%3 {
+			case 0:
+				req.MsgCode = pb.MsgCode_SIGN_IN
+				req.Request = &pb.Request{SignInRequest: &pb.SignInRequest{
+					MobilePhone: "1111",
+					Password:    "2222",
+				}}
+				log.Println("Sending SignIn request")
+			case 1:
+				req.MsgCode = pb.MsgCode_SIGN_UP
+				req.Request = &pb.Request{SignUpRequest: &pb.SignUpRequest{
+					MobilePhone: "1111",
+					Password:    "2222",
+				}}
+				log.Println("Sending SignUp request")
+			case 2:
+				req.MsgCode = pb.MsgCode_REGISTER_ADDR
+				req.Request = &pb.Request{RegisterRequest: &pb.RegisterRequest{}}
+				log.Println("Sending RegisterAddr request")
+			}
+
+			data,err := proto.Marshal(req)
+			if err != nil {
+				log.Println(err)
+			}
+
+
+			if _,err := sess.Write(data); err == nil {
+				log.Println("Send data done")
+			}
+
+			rand++
+			time.Sleep(time.Second)
+		}
+	} else {
+		log.Fatalln(err)
 	}
-
-	conn,err := grpc.Dial("localhost:"+config.PORT,grpc.WithInsecure(),grpc.WithBlock())
-	defer  conn.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	c := pb.NewAuthClient(conn)
-	ctx,cancel := context.WithTimeout(context.Background(), 4*time.Second)
-	defer cancel()
-
-	rsp,err := c.SignUp(ctx,req)
-	if err != nil {
-		log.Println(err)
-	}
-
-	log.Printf("%v, %v",rsp.GetIsSignUp(),rsp.GetPlayerId())
-}
-
-func TestAuth_PingPong(t *testing.T) {
-	req := &pb.Ping{Request: "hello"}
-	conn,err := grpc.Dial("localhost:"+config.PORT,grpc.WithInsecure(),grpc.WithBlock())
-	if err != nil {
-		log.Println(err)
-	}
-	defer conn.Close()
-
-	client := pb.NewAuthClient(conn)
-	ctx,cancel := context.WithTimeout(context.Background(),4*time.Second)
-	defer cancel()
-
-	rsp,err := client.PingPong(ctx,req)
-	if err != nil {
-		log.Printf("error: %v\n",err)
-	}
-	log.Println(rsp.GetResponse())
 }

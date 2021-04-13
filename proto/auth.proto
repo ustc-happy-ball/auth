@@ -12,33 +12,31 @@ package auth;
 
 message GMessage {
   MsgType msgType = 1; //消息类型
-  MsgType msgCode = 2; //消息码 用于表示具体业务类型 参照msgenum.proto中的GAME_MSG_CODE枚举
-//  int32 sessionId = 3; //会话ID
-//  int32 seqId = 4; //消息的编号
+  MsgCode msgCode = 2; //消息码 用于表示具体业务类型
   Request request = 3; //请求类型
   Response response = 4; //答复类型
-  int64 sendTime = 5; //消息发送时间，用于测试网络时延
 }
 
 message Request {
   SignInRequest signInRequest = 1;
   SignUpRequest signUpRequest = 2;
+  RegisterRequest registerRequest = 3;
+  Ping ping = 4;
 }
 
 message  Response {
   SignInResponse signInResponse = 1;
   SignUpResponse signUpResponse = 2;
+  RegisterResponse registerResponse = 3;
+  Pong pong = 4;
 }
 
-enum MsgType {
-  NOTIFY = 0;
-  REQUEST = 1;
-  RESPONSE = 2;
+// used for request dgs address
+message  RegisterRequest {
 }
 
-enum MsgCode {
-  SIGNIN = 0;
-  SIGNUP = 1;
+message RegisterResponse {
+  Address addr = 1;
 }
 
 // Used for sign up, support for mobilePhone currently
@@ -50,7 +48,7 @@ message SignUpRequest {
 message SignUpResponse {
   bool isSignUp = 1;
   int64 playerId = 2;
-  string address = 3;
+  Address  addr = 3;
 }
 
 // Used for sign in, support for mobilePhone currently
@@ -59,30 +57,48 @@ message SignInRequest {
   string password = 2;
 }
 
-
 message SignInResponse {
   bool isLogin = 1;
   int64 playerId = 2;
-  string address = 3;
-}
-
-// Account full info
-message  Account {
-  string id = 1;
-  string mobilePhone = 2;
-  string name = 3;
-  string password = 4;
-  int32  level = 5;
-  string region = 6;
-  string qq = 7;
-  string wechat = 8;
+  Address addr = 3;
 }
 
 // Used for test
 message Ping {
-  string request = 1;
+  string req = 1;
 }
 
 message Pong {
-  string response = 1;
+  string rsp = 1;
 }
+
+// util message
+message  Address {
+  string ip = 1;
+  int32 port = 2;
+}
+
+enum MsgType {
+  NOTIFY = 0;
+  REQUEST = 1;
+  RESPONSE = 2;
+}
+
+enum MsgCode {
+  SIGN_IN = 0;
+  SIGN_UP = 1;
+  REGISTER_ADDR = 2;
+  PING_PONG = 3;
+}
+//// Account full info
+//message  Account {
+//  string id = 1;
+//  string mobilePhone = 2;
+//  string name = 3;
+//  string password = 4;
+//  int32  level = 5;
+//  string region = 6;
+//  string qq = 7;
+//  string wechat = 8;
+//}
+
