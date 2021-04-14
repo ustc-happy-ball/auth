@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment-dev
+  labels:
+    app: auth
+spec:
+  replicas: 2
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
+              protocol: UDP
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always
