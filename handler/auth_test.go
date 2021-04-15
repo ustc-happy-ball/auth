@@ -62,25 +62,25 @@ func TestAuth(t *testing.T) {
 					MobilePhone: "1111",
 					Password:    "2222",
 				}}
-				log.Println("Sending SignIn request")
+				log.Printf("Sending SignIn request, seqID %d\n",rand)
 			case 1:
 				req.MsgCode = pb.MsgCode_SIGN_UP
 				req.Request = &pb.Request{SignUpRequest: &pb.SignUpRequest{
 					MobilePhone: "1111",
 					Password:    "2222",
 				}}
-				log.Println("Sending SignUp request")
+				log.Printf("Sending SignUp request, seqID %d\n",rand)
 			case 2:
 				req.MsgCode = pb.MsgCode_REGISTER_ADDR
 				req.Request = &pb.Request{RegisterRequest: &pb.RegisterRequest{}}
-				log.Println("Sending RegisterAddr request")
+				log.Printf("Sending RegisterAddr request, seqID %d\n",rand)
 			}
 
+			req.SeqId = int32(rand)
 			data,err := proto.Marshal(req)
 			if err != nil {
 				log.Println(err)
 			}
-
 
 			if _,err := sess.Write(data); err == nil {
 				log.Println("Send data done")

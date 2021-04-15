@@ -60,15 +60,15 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 
 	var rsp pb.GMessage
 	rsp.MsgType = pb.MsgType_RESPONSE
+	rsp.SeqId = msg.SeqId
 	//defer conn.Close()
 
 	switch msg.MsgType {
 	case pb.MsgType_REQUEST:
 		switch msg.MsgCode {
 		case pb.MsgCode_SIGN_IN:
-			log.Println("Receive SignIn Request")
+			log.Printf("Receive SignIn Request, seqId %d\n",msg.SeqId)
 			r,err := srv.Auth.SignIn(msg.Request.GetSignInRequest())
-			log.Println("Get signIn response")
 			if err != nil {
 				log.Println(err)
 			}
@@ -76,7 +76,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 			rsp.MsgCode = pb.MsgCode_SIGN_IN
 			rsp.Response  = &pb.Response{SignInResponse: r}
 		case pb.MsgCode_SIGN_UP:
-			log.Println("Receive SignUP Request")
+			log.Printf("Receive SignUP Request,seqId %d\n",msg.SeqId)
 			r,err := srv.Auth.SignUp(msg.Request.GetSignUpRequest())
 			if err != nil {
 				log.Println(err)
@@ -85,7 +85,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 			rsp.MsgCode  = pb.MsgCode_SIGN_UP
 			rsp.Response = &pb.Response{SignUpResponse: r}
 		case pb.MsgCode_REGISTER_ADDR:
-			log.Println("Receive RequestAddress request")
+			log.Printf("Receive RequestAddress request, seqId %d\n",msg.SeqId)
 			r,err := srv.Auth.Register(msg.Request.GetRegisterRequest())
 			if err != nil {
 				log.Println(err)
@@ -118,7 +118,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 		log.Println(err)
 	}
 
-	log.Println("Write back response to client")
+	log.Printf("Write back response to client, seqID %d\n",msg.SeqId)
 	_,err = conn.Write(b)
 	if err != nil {
 		log.Println(err)

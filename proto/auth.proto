@@ -15,6 +15,7 @@ message GMessage {
   MsgCode msgCode = 2; //消息码 用于表示具体业务类型
   Request request = 3; //请求类型
   Response response = 4; //答复类型
+  int32  seqId = 5;
 }
 
 message Request {
