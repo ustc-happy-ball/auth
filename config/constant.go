@@ -12,7 +12,7 @@ var (
 	PORT = "22222"
 
 	// dgs address
-	REMOTE_IP = "1.15.135.248"
-	REMOTE_PORT = 31000
+	REMOTE_IP = "175.24.252.111"
+	REMOTE_PORT = 8888
 )
 
