@@ -46,7 +46,7 @@ func (a *Auth) SignUp(req *pb.SignUpRequest) (*pb.SignUpResponse,error) {
 		IsSignUp: true,
 		PlayerId: globalUID,
 		Addr: &pb.Address{
-			Ip:   config.REMOTE_IP,
+			Ip:   config.REMOTE_CLB,
 			Port: int32(config.REMOTE_PORT),
 		},
 	},nil
@@ -79,7 +79,7 @@ func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, error) {
 		IsLogin:  true,
 		PlayerId: globalUID,
 		Addr: &pb.Address{
-			Ip:   config.REMOTE_IP,
+			Ip:   config.REMOTE_CLB,
 			Port: int32(config.REMOTE_PORT),
 		},
 	},nil
@@ -87,7 +87,7 @@ func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, error) {
 
 func (a *Auth) Register(req *pb.RegisterRequest) (*pb.RegisterResponse,error) {
 	return  &pb.RegisterResponse{Addr: &pb.Address{
-		Ip:  config.REMOTE_IP,
+		Ip:  config.REMOTE_CLB,
 		Port: int32(config.REMOTE_PORT),
 	}},nil
 }
