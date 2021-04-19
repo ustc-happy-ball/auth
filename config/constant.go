@@ -8,8 +8,8 @@ var (
 	ACCOUNT = "account"
 
 	// auth service address
-	IP = "127.0.0.1"
-	PORT = "22222"
+	IP = "0.0.0.0"
+	PORT = "8889"
 
 	// CLB addr for dgs
 	REMOTE_CLB  = "175.24.252.111"

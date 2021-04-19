@@ -14,7 +14,7 @@ type Auth struct {
 
 
 // TODO just for test
-var globalUID = tools.GenerateUUID64()
+var globalUID = tools.GenerateUUID32()
 
 // SignUp for signing up account, use full account info or just mobilePhone and password
 func (a *Auth) SignUp(req *pb.SignUpRequest) (*pb.SignUpResponse,error) {
@@ -44,7 +44,7 @@ func (a *Auth) SignUp(req *pb.SignUpRequest) (*pb.SignUpResponse,error) {
 
 	return &pb.SignUpResponse{
 		IsSignUp: true,
-		PlayerId: globalUID,
+		PlayerId: int32(globalUID),
 		Addr: &pb.Address{
 			Ip:   config.REMOTE_CLB,
 			Port: int32(config.REMOTE_PORT),
@@ -77,7 +77,7 @@ func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, error) {
 
 	return &pb.SignInResponse{
 		IsLogin:  true,
-		PlayerId: globalUID,
+		PlayerId: int32(globalUID),
 		Addr: &pb.Address{
 			Ip:   config.REMOTE_CLB,
 			Port: int32(config.REMOTE_PORT),

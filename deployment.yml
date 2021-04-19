@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deployment-dev
+  name: auth-srv
   labels:
     app: auth
 spec:
-  replicas: 2
+  replicas: 1
   minReadySeconds: 5
   strategy:
     type: RollingUpdate
@@ -21,12 +21,14 @@ spec:
         app: auth
     spec:
       containers:
-        - name: auth
+        - name: auth-srv
           image: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
           imagePullPolicy: Always
           ports:
-            - containerPort: 8888
+            - containerPort: 8889
               protocol: UDP
       imagePullSecrets:
         - name: regcred
       restartPolicy: Always
+      nodeSelector:
+        environment: test

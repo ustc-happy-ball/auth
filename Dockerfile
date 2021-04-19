@@ -11,5 +11,5 @@ RUN go build -o auth main.go
 FROM alpine:latest
 WORKDIR  /root/go/src/github.com/LILILIhuahuahua/ustc_tencent_game
 COPY --from=builder  /root/go/src/github.com/LILILIhuahuahua/ustc_tencent_game/auth .
-EXPOSE 8888/udp
+EXPOSE 8889/udp
 ENTRYPOINT ["./auth"]

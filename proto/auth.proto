@@ -48,7 +48,7 @@ message SignUpRequest {
 
 message SignUpResponse {
   bool isSignUp = 1;
-  int64 playerId = 2;
+  int32 playerId = 2;
   Address  addr = 3;
 }
 
@@ -60,7 +60,7 @@ message SignInRequest {
 
 message SignInResponse {
   bool isLogin = 1;
-  int64 playerId = 2;
+  int32 playerId = 2;
   Address addr = 3;
 }
 
