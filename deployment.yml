@@ -33,4 +33,4 @@ spec:
         - name: regcred
       restartPolicy: Always
       nodeSelector:
-        environment: test
+        environment: dev
