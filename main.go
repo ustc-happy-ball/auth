@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	handler.InitDataBase(config.DBAddr)
 	s,err := handler.NewServer(config.IP+":"+config.PORT)
 	if err != nil {
 		log.Fatalln(err)

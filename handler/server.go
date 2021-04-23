@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/golang/protobuf/proto"
-	pb "github.com/imilano/auth/proto"
+	pb "github.com/imilano/auth/proto/auth"
 	"github.com/xtaci/kcp-go"
 	"log"
 )
@@ -18,7 +18,8 @@ func NewServer(addr string) (*Server,error) {
 	var err error
 	s.Listener,err = kcp.ListenWithOptions(addr,nil,0,0)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return nil,err
 	}
 
 	return s,nil

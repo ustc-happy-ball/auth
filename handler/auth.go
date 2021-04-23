@@ -1,50 +1,40 @@
 package handler
 
 import (
+	"context"
 	"github.com/imilano/auth/config"
-	"github.com/imilano/auth/db"
-	pb "github.com/imilano/auth/proto"
+	pb "github.com/imilano/auth/proto/auth"
+	db "github.com/imilano/auth/proto/db"
 	"github.com/imilano/auth/tools"
+	"log"
+	"time"
 )
 
-
-type Auth struct {
-	DB *db.DataBase
-}
-
-
-// TODO just for test
-var globalUID = tools.GenerateUUID32()
+type Auth struct {}
 
 // SignUp for signing up account, use full account info or just mobilePhone and password
 func (a *Auth) SignUp(req *pb.SignUpRequest) (*pb.SignUpResponse,error) {
-	//uid := tools.GenerateUUID64()
-	//account := &model.Account{
-	//	ID:            uid,  // TODO 非关系型数据库，如何处理这个ID，这个ID还有必要保留吗?这里的id与MongoDB中的_id有何关系
-	//	MobilePhone:   req.MobilePhone,
-	//	Name:          "",
-	//	LoginPassword: req.Password,
-	//	AccountAvatar: "",
-	//	Level:         0,
-	//	Skin:          "",
-	//	Deleted:       false,
-	//	Region:        "",
-	//	QQ:            "",
-	//	WeChat:        "",
-	//	CreateAt:      time.Time{},
-	//	UpdateAt:      time.Time{},
-	//}
+	playerID := tools.GenerateUUID32()
+	accountAddReq := &db.AccountAddRequest{Account: &db.Account{
+		ObjectId:      "",
+		PlayerId: 		int32(playerID),
+		LoginPassword: req.Password,
+		Phone:         req.MobilePhone,
+		RecentLogin:   time.Now().UnixNano(),
+		CreateAt:      time.Now().UnixNano(),
+		UpdateAt:      time.Now().UnixNano(),
+	}}
 
-	// TODO deal with db connection
-	//_,err := a.DB.InsertOneAccount(ctx,account)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-
+	ctx,cancel := context.WithTimeout(context.Background(),2 * time.Second)
+	defer cancel()
+	_,err := (*RemoteDataBase.account).AccountAdd(ctx,accountAddReq)
+	if err != nil {
+		log.Printf("fail to add account: %v\n",err)
+	}
 
 	return &pb.SignUpResponse{
 		IsSignUp: true,
-		PlayerId: int32(globalUID),
+		PlayerId: int32(playerID),
 		Addr: &pb.Address{
 			Ip:   config.REMOTE_CLB,
 			Port: int32(config.REMOTE_PORT),
@@ -53,31 +43,28 @@ func (a *Auth) SignUp(req *pb.SignUpRequest) (*pb.SignUpResponse,error) {
 }
 
 func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, error) {
-	//account := &model.Account{
-	//	ID:            0,
-	//	MobilePhone:   req.MobilePhone,
-	//	Name:          "",
-	//	LoginPassword: req.Password,
-	//	AccountAvatar: "",
-	//	Level:         0,
-	//	Skin:          "",
-	//	Deleted:       false,
-	//	Region:        "",
-	//	QQ:            "",
-	//	WeChat:        "",
-	//	CreateAt:      time.Time{},
-	//	UpdateAt:      time.Time{},
-	//}
+	accountFindReq := &db.AccountFindByPhoneRequest{Phone: req.MobilePhone}
 
-	// TODO deal with db connection
-	//account, err := a.DB.QueryAccountByMobilePhone(ctx,req.MobilePhone)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
+	ctx,cancel := context.WithTimeout(context.Background(),2 * time.Second)
+	defer cancel()
+	accountFindRsp,err := (*RemoteDataBase.account).AccountFindByPhone(ctx,accountFindReq)
+	if err != nil {
+		log.Printf("fail to find account: %v",err)
+	}
+
+	// if password does not match
+	if accountFindRsp.Account.LoginPassword != req.Password || accountFindRsp.Account.Delete == true{
+		return &pb.SignInResponse{
+			IsLogin:  false,
+			PlayerId: 0,
+			Addr:     nil,
+		},nil
+	}
+
 
 	return &pb.SignInResponse{
 		IsLogin:  true,
-		PlayerId: int32(globalUID),
+		PlayerId: accountFindRsp.Account.PlayerId,
 		Addr: &pb.Address{
 			Ip:   config.REMOTE_CLB,
 			Port: int32(config.REMOTE_PORT),

@@ -3,9 +3,7 @@ package config
 
 var (
 	// Account DB info
-	DBURI   = "mongodb://localhost:27017"
-	DB      = "gamedb"
-	ACCOUNT = "account"
+	DBAddr   = "db-srv"
 
 	// auth service address
 	IP = "0.0.0.0"
@@ -17,6 +15,5 @@ var (
 	REMOTE_PORT = 8888
 
 	// dgs pod addr
-
 )
 
