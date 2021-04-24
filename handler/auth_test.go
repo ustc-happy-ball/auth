@@ -7,6 +7,8 @@ import (
 	pb "github.com/imilano/auth/proto/auth"
 	"github.com/xtaci/kcp-go"
 	"log"
+	rand2 "math/rand"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -47,26 +49,28 @@ func TestAuth(t *testing.T) {
 	fmt.Println("Starting to test auth service")
 	var rand int
 
-	if sess,err :=  kcp.DialWithOptions(config.IP+":"+config.PORT,nil,0,0); err == nil {
+	if sess,err :=  kcp.DialWithOptions(config.IP+":"+"8889",nil,0,0); err == nil {
 		go receive(sess)
-		for  {
+		for  rand != 3{
 			log.Println("Preparing data to send")
 			req  := &pb.GMessage{
 				MsgType:  pb.MsgType_REQUEST,
 			}
 
+			s := rand2.Int()
+			phone := strconv.Itoa(s)
 			switch rand%3 {
-			case 0:
+			case 1:
 				req.MsgCode = pb.MsgCode_SIGN_IN
 				req.Request = &pb.Request{SignInRequest: &pb.SignInRequest{
-					MobilePhone: "1111",
+					MobilePhone: phone,
 					Password:    "2222",
 				}}
 				log.Printf("Sending SignIn request, seqID %d\n",rand)
-			case 1:
+			case 0:
 				req.MsgCode = pb.MsgCode_SIGN_UP
 				req.Request = &pb.Request{SignUpRequest: &pb.SignUpRequest{
-					MobilePhone: "1111",
+					MobilePhone: phone,
 					Password:    "2222",
 				}}
 				log.Printf("Sending SignUp request, seqID %d\n",rand)
@@ -87,7 +91,7 @@ func TestAuth(t *testing.T) {
 			}
 
 			rand++
-			time.Sleep(time.Second)
+			time.Sleep(3*time.Second)
 		}
 	} else {
 		log.Fatalln(err)

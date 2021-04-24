@@ -10,9 +10,8 @@ var (
 	PORT = "8889"
 
 	// CLB addr for dgs
-	REMOTE_CLB  = "175.24.252.111"
-	PodIP = "1.116.109.211"
-	REMOTE_PORT = 8888
+	REMOTE_CLB  = "150.158.238.236"
+	REMOTE_PORT = 32000
 
 	// dgs pod addr
 )

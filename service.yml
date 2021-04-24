@@ -9,7 +9,7 @@ spec:
   externalTrafficPolicy: Cluster
   sessionAffinity: ClientIP
   ports:
-    - port: 8889
+    - port: 32000
 #      nodePort: 32000
       targetPort: 8889
       protocol: UDP
