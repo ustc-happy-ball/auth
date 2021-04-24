@@ -8,10 +8,13 @@ import (
 
 func main() {
 	handler.InitDataBase(config.DBAddr)
-	s,err := handler.NewServer(config.IP+":"+config.PORT)
+
+	addr := config.IP + ":" + config.PORT
+	s,err := handler.NewServer(addr)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	log.Printf("Starting server, lisen on %v\n",addr)
 	s.Serv()
 }

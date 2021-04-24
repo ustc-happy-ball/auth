@@ -49,7 +49,11 @@ func TestAuth(t *testing.T) {
 	fmt.Println("Starting to test auth service")
 	var rand int
 
-	if sess,err :=  kcp.DialWithOptions(config.REMOTE_CLB+":"+"30679",nil,0,0); err == nil {
+	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
+	_ = raddr
+	laddr := config.IP + ":" + config.PORT
+
+	if sess,err :=  kcp.DialWithOptions(laddr,nil,0,0); err == nil {
 		go receive(sess)
 		for  rand != 3{
 			log.Println("Preparing data to send")

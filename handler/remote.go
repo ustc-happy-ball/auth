@@ -14,6 +14,7 @@ type DataBase struct {
 }
 
 func InitDataBase(addr string) {
+	log.Println("Starting to initialize db connection......")
 	conn,err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalln(err)

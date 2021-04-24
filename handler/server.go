@@ -15,6 +15,8 @@ type Server struct {
 // NewServer return a kcp Server
 func NewServer(addr string) (*Server,error) {
 	s := new(Server)
+
+	log.Println("Creating server......")
 	var err error
 	s.Listener,err = kcp.ListenWithOptions(addr,nil,0,0)
 	if err != nil {
@@ -33,6 +35,7 @@ func (s *Server)Serv () {
 			log.Fatalln(err)
 		}
 
+		log.Println("Accect connection, starting to handle......")
 		go handler(sess,s)
 	}
 }
@@ -62,7 +65,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 	var rsp pb.GMessage
 	rsp.MsgType = pb.MsgType_RESPONSE
 	rsp.SeqId = msg.SeqId
-	//defer conn.Close()
+	defer conn.Close()
 
 	switch msg.MsgType {
 	case pb.MsgType_REQUEST:
