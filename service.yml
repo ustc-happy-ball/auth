@@ -10,7 +10,7 @@ spec:
   sessionAffinity: ClientIP
   ports:
     - port: 32000
-#      nodePort: 32000
+      nodePort: 32000
       targetPort: 8889
       protocol: UDP
   #  externalIPs:
