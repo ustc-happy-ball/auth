@@ -52,8 +52,9 @@ func TestAuth(t *testing.T) {
 	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
 	_ = raddr
 	laddr := config.IP + ":" + config.PORT
+	_ = laddr
 
-	if sess,err :=  kcp.DialWithOptions(laddr,nil,0,0); err == nil {
+	if sess,err :=  kcp.DialWithOptions(raddr,nil,0,0); err == nil {
 		go receive(sess)
 		for  rand != 3{
 			log.Println("Preparing data to send")

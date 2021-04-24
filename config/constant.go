@@ -3,7 +3,7 @@ package config
 
 var (
 	// Account DB info
-	DBAddr   = "db-srv"
+	DBAddr   = "db-srv:8890"
 
 	// auth service address
 	IP = "0.0.0.0"
