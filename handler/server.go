@@ -44,16 +44,15 @@ func (s *Server)Serv () {
 func handler(conn *kcp.UDPSession,srv *Server) {
 	defer conn.Close()
 	buf := make([]byte,1024)
-	// 不用维持状态，所以并不需要一直进行监听
-	//for {
-	n,err := conn.Read(buf)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	for {
+		n,err := conn.Read(buf)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
-	go dispatcher(conn,buf[:n],srv)
-	//}
+		go dispatcher(conn,buf[:n],srv)
+	}
 }
 
 // dispatcher to dispatch message according to MsyType
@@ -102,8 +101,6 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 	if err != nil {
 		log.Println(err)
 	}
-
-	defer conn.Close()
 }
 
 
