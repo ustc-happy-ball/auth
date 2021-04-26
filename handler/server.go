@@ -42,6 +42,7 @@ func (s *Server)Serv () {
 
 // handler to handle every connection
 func handler(conn *kcp.UDPSession,srv *Server) {
+	defer conn.Close()
 	buf := make([]byte,1024)
 	for {
 		n,err := conn.Read(buf)
@@ -65,7 +66,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 	var rsp pb.GMessage
 	rsp.MsgType = pb.MsgType_RESPONSE
 	rsp.SeqId = msg.SeqId
-	defer conn.Close()
+	//defer conn.Close()
 
 	switch msg.MsgType {
 	case pb.MsgType_REQUEST:
