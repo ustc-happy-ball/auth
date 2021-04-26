@@ -129,7 +129,7 @@ var _AccountService_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "grpc_req_res.proto",
+	Metadata: "database.proto",
 }
 
 // PlayerServiceClient is the client API for PlayerService service.
@@ -248,5 +248,5 @@ var _PlayerService_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "grpc_req_res.proto",
+	Metadata: "database.proto",
 }

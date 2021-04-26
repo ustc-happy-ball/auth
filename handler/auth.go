@@ -31,7 +31,7 @@ func (a *Auth) SignUp(req *pb.SignUpRequest) (*pb.SignUpResponse,error) {
 	if err != nil {
 		log.Printf("fail to add account: %v\n",err)
 	}
-
+	// TODO 如果 account 的信息重复了
 	return &pb.SignUpResponse{
 		IsSignUp: true,
 		PlayerId: int32(playerID),
@@ -42,7 +42,8 @@ func (a *Auth) SignUp(req *pb.SignUpRequest) (*pb.SignUpResponse,error) {
 	},nil
 }
 
-func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, error) {
+// SignIn for signing in account
+func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, pb.ErrNum, error) {
 	accountFindReq := &db.AccountFindByPhoneRequest{Phone: req.MobilePhone}
 
 	ctx,cancel := context.WithTimeout(context.Background(),2 * time.Second)
@@ -52,13 +53,32 @@ func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, error) {
 		log.Printf("fail to find account: %v",err)
 	}
 
-	// if password does not match
-	if accountFindRsp.Account.LoginPassword != req.Password || accountFindRsp.Account.Delete == true{
+	// if account does not exist
+	if accountFindRsp.Account.Delete == true {
 		return &pb.SignInResponse{
 			IsLogin:  false,
 			PlayerId: 0,
-			Addr:     nil,
-		},nil
+			Addr:     &pb.Address{
+				Ip:   config.REMOTE_CLB,
+				Port: int32(config.REMOTE_PORT),
+			},
+		},
+		pb.ErrNum_ACCOUNT_NOT_EXIST,
+		err
+		}
+
+	// if password does not match
+	if accountFindRsp.Account.LoginPassword != req.Password  {
+		return &pb.SignInResponse{
+			IsLogin:  false,
+			PlayerId: 0,
+			Addr:     &pb.Address{
+				Ip:   config.REMOTE_CLB,
+				Port: int32(config.REMOTE_PORT),
+			},
+		},
+		pb.ErrNum_ACCOUNT_MISMATCH,
+		err
 	}
 
 
@@ -69,9 +89,11 @@ func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, error) {
 			Ip:   config.REMOTE_CLB,
 			Port: int32(config.REMOTE_PORT),
 		},
-	},nil
+	},pb.ErrNum_REGULAR_MSG,
+	nil
 }
 
+// Register to notify dgs address to client
 func (a *Auth) Register(req *pb.RegisterRequest) (*pb.RegisterResponse,error) {
 	return  &pb.RegisterResponse{Addr: &pb.Address{
 		Ip:  config.REMOTE_CLB,
@@ -79,6 +101,7 @@ func (a *Auth) Register(req *pb.RegisterRequest) (*pb.RegisterResponse,error) {
 	}},nil
 }
 
+// PingPong for test
 func (a *Auth)  PingPong(req *pb.Ping) (*pb.Pong,error) {
 	return &pb.Pong{Rsp: "Hello back!"},nil
 }

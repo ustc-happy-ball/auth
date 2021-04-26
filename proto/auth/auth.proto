@@ -16,6 +16,7 @@ message GMessage {
   Request request = 3; //请求类型
   Response response = 4; //答复类型
   int32  seqId = 5;
+  ErrNum errNum = 6;  // 错误类型
 }
 
 message Request {
@@ -33,8 +34,7 @@ message  Response {
 }
 
 // used for request dgs address
-message  RegisterRequest {
-}
+message  RegisterRequest {}
 
 message RegisterResponse {
   Address addr = 1;
@@ -90,6 +90,14 @@ enum MsgCode {
   SIGN_UP = 1;
   REGISTER_ADDR = 2;
   PING_PONG = 3;
+}
+
+enum ErrNum {
+  DUPLICATE_PHONE = 0;  // 手机号已存在
+  ACCOUNT_MISMATCH = 1;  // 账号密码与数据库信息不匹配
+  WRONG_PHONE_FORMAT = 2; // 手机号格式不对
+  ACCOUNT_NOT_EXIST = 3;   // 账户不存在
+  REGULAR_MSG = 4;         // 正常消息，无错误
 }
 //// Account full info
 //message  Account {

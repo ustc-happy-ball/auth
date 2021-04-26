@@ -35,7 +35,7 @@ func (s *Server)Serv () {
 			log.Fatalln(err)
 		}
 
-		log.Println("Accect connection, starting to handle......")
+		log.Println("Accept connection, starting to handle......")
 		go handler(sess,s)
 	}
 }
@@ -73,11 +73,12 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 		switch msg.MsgCode {
 		case pb.MsgCode_SIGN_IN:
 			log.Printf("Receive SignIn Request, seqId %d\n",msg.SeqId)
-			r,err := srv.Auth.SignIn(msg.Request.GetSignInRequest())
+			r,errNum, err := srv.Auth.SignIn(msg.Request.GetSignInRequest())
 			if err != nil {
 				log.Println(err)
 			}
 
+			rsp.ErrNum = errNum
 			rsp.MsgCode = pb.MsgCode_SIGN_IN
 			rsp.Response  = &pb.Response{SignInResponse: r}
 		case pb.MsgCode_SIGN_UP:
@@ -87,6 +88,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 				log.Println(err)
 			}
 
+			rsp.ErrNum = pb.ErrNum_REGULAR_MSG
 			rsp.MsgCode  = pb.MsgCode_SIGN_UP
 			rsp.Response = &pb.Response{SignUpResponse: r}
 		case pb.MsgCode_REGISTER_ADDR:
@@ -96,6 +98,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 				log.Println(err)
 			}
 
+			rsp.ErrNum = pb.ErrNum_REGULAR_MSG
 			rsp.MsgCode = pb.MsgCode_REGISTER_ADDR
 			rsp.Response = &pb.Response{RegisterResponse: r}
 		case pb.MsgCode_PING_PONG:

@@ -7,7 +7,7 @@ import (
 	pb "github.com/imilano/auth/proto/auth"
 	"github.com/xtaci/kcp-go"
 	"log"
-	rand2 "math/rand"
+	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -27,6 +27,7 @@ func receive(sess *kcp.UDPSession) {
 			log.Println(err)
 		}
 
+		log.Println(msg.ErrNum)
 		switch msg.MsgCode {
 		case pb.MsgCode_PING_PONG:
 		case pb.MsgCode_SIGN_IN:
@@ -47,45 +48,45 @@ func receive(sess *kcp.UDPSession) {
 
 func TestAuth(t *testing.T) {
 	fmt.Println("Starting to test auth service")
-	var rand int
+	var times int
 
 	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
 	_ = raddr
-	laddr := config.IP + ":" + config.PORT
-	_ = laddr
-
-	if sess,err :=  kcp.DialWithOptions(raddr,nil,0,0); err == nil {
+	phoneNum := rand.Intn(1000) + 15251859785
+	if sess,err :=  kcp.DialWithOptions("127.0.0.1:8889",nil,0,0); err == nil {
 		go receive(sess)
-		for  rand != 3{
+
+		var oldPhone string
+		for  times != 12 {
 			log.Println("Preparing data to send")
 			req  := &pb.GMessage{
 				MsgType:  pb.MsgType_REQUEST,
 			}
 
-			s := rand2.Int()
-			phone := strconv.Itoa(s)
-			switch rand%3 {
+
+			phone := strconv.Itoa(phoneNum)
+			switch times%3 {
 			case 1:
 				req.MsgCode = pb.MsgCode_SIGN_IN
 				req.Request = &pb.Request{SignInRequest: &pb.SignInRequest{
-					MobilePhone: phone,
+					MobilePhone: oldPhone,
 					Password:    "2222",
 				}}
-				log.Printf("Sending SignIn request, seqID %d\n",rand)
+				log.Printf("Sending SignIn request, seqID %d\n", times)
 			case 0:
 				req.MsgCode = pb.MsgCode_SIGN_UP
 				req.Request = &pb.Request{SignUpRequest: &pb.SignUpRequest{
 					MobilePhone: phone,
 					Password:    "2222",
 				}}
-				log.Printf("Sending SignUp request, seqID %d\n",rand)
+				log.Printf("Sending SignUp request, seqID %d\n", times)
 			case 2:
 				req.MsgCode = pb.MsgCode_REGISTER_ADDR
 				req.Request = &pb.Request{RegisterRequest: &pb.RegisterRequest{}}
-				log.Printf("Sending RegisterAddr request, seqID %d\n",rand)
+				log.Printf("Sending RegisterAddr request, seqID %d\n",times)
 			}
 
-			req.SeqId = int32(rand)
+			req.SeqId = int32(times)
 			data,err := proto.Marshal(req)
 			if err != nil {
 				log.Println(err)
@@ -95,7 +96,9 @@ func TestAuth(t *testing.T) {
 				log.Println("Send data done")
 			}
 
-			rand++
+			times++
+			oldPhone = phone
+			phoneNum++
 			time.Sleep(3*time.Second)
 		}
 	} else {
