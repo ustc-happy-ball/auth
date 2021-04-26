@@ -15,16 +15,17 @@ type Auth struct {}
 
 // SignUp for signing up account, use full account info or just mobilePhone and password
 func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
-	var msg pb.GMessage
-	msg.SeqId = reqMsg.SeqId
-	msg.MsgCode = pb.MsgCode_SIGN_UP
-	msg.MsgType = pb.MsgType_RESPONSE
 	req := reqMsg.Request.SignUpRequest
 
 	// if phone number is wrong
 	if !matchPhone(req.MobilePhone) {
-		msg.ErrNum = pb.ErrNum_WRONG_PHONE_FORMAT
-		return &msg,nil
+		return &pb.GMessage{
+			MsgType:  pb.MsgType_RESPONSE,
+			MsgCode:  pb.MsgCode_SIGN_UP,
+			Response: nil,
+			SeqId:    reqMsg.SeqId,
+			ErrNum:   pb.ErrNum_WRONG_PHONE_FORMAT,
+		},nil
 	}
 
 	playerID := tools.GenerateUUID32()
@@ -40,72 +41,105 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 
 	ctx,cancel := context.WithTimeout(context.Background(),2 * time.Second)
 	defer cancel()
-	_,err := (*RemoteDataBase.account).AccountAdd(ctx,accountAddReq)
-	if err != nil {
-		log.Printf("fail to add account: %v\n",err)
+
+	if !config.DEBUG {
+		_, err := (*RemoteDataBase.account).AccountAdd(ctx, accountAddReq)
+		if err != nil {
+			log.Printf("fail to add account: %v\n", err)
+		}
 	}
 	// TODO 如果 account 的信息重复了
-
-	msg.ErrNum = pb.ErrNum_REGULAR_MSG
-	msg.Response.SignUpResponse = &pb.SignUpResponse{
-		IsSignUp: true,
-		PlayerId: int32(playerID),
-		Addr:     &pb.Address{
-			Ip:   config.REMOTE_CLB,
-			Port: int32(config.REMOTE_PORT),
-		},
-	}
-	return &msg,nil
+	return &pb.GMessage{
+		MsgType:  pb.MsgType_RESPONSE,
+		MsgCode:  pb.MsgCode_SIGN_UP,
+		Response: &pb.Response{SignUpResponse: &pb.SignUpResponse{
+			IsSignUp: true,
+			PlayerId: int32(playerID),
+			Addr:     &pb.Address{
+				Ip:   config.REMOTE_CLB,
+				Port: int32(config.REMOTE_PORT),
+			},
+		}},
+		SeqId:    reqMsg.SeqId,
+		ErrNum:   pb.ErrNum_REGULAR_MSG,
+	},nil
 }
 
 // SignIn for signing in account
 func (a *Auth) SignIn(reqMsg *pb.GMessage) (*pb.GMessage,error) {
-	var msg pb.GMessage
-	msg.MsgCode = pb.MsgCode_SIGN_IN
-	msg.SeqId = reqMsg.SeqId
-	msg.MsgType = pb.MsgType_RESPONSE
-
 	req := reqMsg.Request.SignInRequest
 	if !matchPhone(req.MobilePhone) {
-		msg.ErrNum = pb.ErrNum_WRONG_PHONE_FORMAT
-		return &msg,nil
+		return &pb.GMessage{
+			MsgType:  pb.MsgType_RESPONSE,
+			MsgCode:  pb.MsgCode_SIGN_IN,
+			Response: nil,
+			SeqId:    reqMsg.SeqId,
+			ErrNum:   pb.ErrNum_WRONG_PHONE_FORMAT,
+		},nil
 	}
 
 	accountFindReq := &db.AccountFindByPhoneRequest{Phone: req.MobilePhone}
 	ctx,cancel := context.WithTimeout(context.Background(),2 * time.Second)
 	defer cancel()
 
+
+	if config.DEBUG {
+		return &pb.GMessage{
+			MsgType:  pb.MsgType_RESPONSE,
+			MsgCode:  pb.MsgCode_SIGN_IN,
+			Response: nil,
+			SeqId:    reqMsg.SeqId,
+			ErrNum:   pb.ErrNum_REGULAR_MSG,
+		},nil
+	}
 	// If account doesn't exist or has been deleted
-	accountFindRsp,err := (*RemoteDataBase.account).AccountFindByPhone(ctx,accountFindReq)
+	accountFindRsp, err := (*RemoteDataBase.account).AccountFindByPhone(ctx, accountFindReq)
 	if err != nil {
-		log.Printf("fail to find account: %v",err)
-		msg.ErrNum = pb.ErrNum_ACCOUNT_NOT_EXIST
-		return &msg,nil
+		log.Printf("fail to find account: %v", err)
+		return &pb.GMessage{
+			MsgType:  pb.MsgType_RESPONSE,
+			MsgCode:  pb.MsgCode_SIGN_IN,
+			Response: nil,
+			SeqId:    reqMsg.SeqId,
+			ErrNum:   pb.ErrNum_ACCOUNT_NOT_EXIST,
+		},nil
 	}
 
 	if accountFindRsp.Account.Delete == true {
-		msg.ErrNum = pb.ErrNum_ACCOUNT_NOT_EXIST
-		return &msg,nil
+		return &pb.GMessage{
+			MsgType:  pb.MsgType_RESPONSE,
+			MsgCode:  pb.MsgCode_SIGN_IN,
+			Response: nil,
+			SeqId:    reqMsg.SeqId,
+			ErrNum:   pb.ErrNum_ACCOUNT_NOT_EXIST,
+		},nil
 	}
 
 	// If password mismatch
 	if accountFindRsp.Account.LoginPassword != req.Password {
-		msg.ErrNum = pb.ErrNum_PASSWORD_MISMATCH
-		return &msg,nil
+		return &pb.GMessage{
+			MsgType:  pb.MsgType_RESPONSE,
+			MsgCode:  pb.MsgCode_SIGN_IN,
+			Response: nil,
+			SeqId:    reqMsg.SeqId,
+			ErrNum:   pb.ErrNum_PASSWORD_MISMATCH,
+		},nil
 	}
 
-
-	msg.ErrNum = pb.ErrNum_REGULAR_MSG
-	msg.Response.SignInResponse = &pb.SignInResponse{
-		IsLogin:  true,
-		PlayerId: accountFindRsp.Account.PlayerId,
-		Addr:     &pb.Address{
-			Ip:  config.REMOTE_CLB,
-			Port: int32(config.REMOTE_PORT),
-		},
-	}
-
-	return &msg,nil
+	return &pb.GMessage{
+		MsgType:  pb.MsgType_RESPONSE,
+		MsgCode:  pb.MsgCode_SIGN_IN,
+		Response: &pb.Response{SignInResponse: &pb.SignInResponse{
+			IsLogin:  true,
+			PlayerId: accountFindRsp.Account.PlayerId,
+			Addr:     &pb.Address{
+				Ip:   config.REMOTE_CLB,
+				Port: int32(config.REMOTE_PORT),
+			},
+		}},
+		SeqId:    reqMsg.SeqId,
+		ErrNum:   pb.ErrNum_REGULAR_MSG,
+	},nil
 }
 
 // Register to notify dgs address to client

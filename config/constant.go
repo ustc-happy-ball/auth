@@ -13,6 +13,6 @@ var (
 	REMOTE_CLB  = "150.158.238.236"
 	REMOTE_PORT = 32000
 
-	// dgs pod addr
+	DEBUG = false
 )
 

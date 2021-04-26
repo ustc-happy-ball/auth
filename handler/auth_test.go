@@ -50,6 +50,8 @@ func receive(sess *kcp.UDPSession) {
 			log.Println(msg.SeqId,msg.ErrNum)
 		case pb.ErrNum_DUPLICATE_PHONE:
 			log.Println(msg.SeqId,msg.ErrNum)
+		default:
+			fmt.Printf("Unknown msg info: %v\n",msg)
 		}
 	}
 }
@@ -103,7 +105,7 @@ func TestAuth(t *testing.T) {
 	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
 	_ = raddr
 	phoneNum := rand.Intn(10) + 15251859785
-	if sess,err :=  kcp.DialWithOptions(raddr,nil,0,0); err == nil {
+	if sess,err :=  kcp.DialWithOptions("127.0.0.1:8889",nil,0,0); err == nil {
 		go receive(sess)
 
 		var oldPhone string
@@ -149,8 +151,10 @@ func TestAuth(t *testing.T) {
 			times++
 			oldPhone = phone
 			phoneNum++
-			time.Sleep(3*time.Second)
+			time.Sleep(1*time.Second)
 		}
+
+		time.Sleep(3 * time.Second)
 	} else {
 		log.Fatalln(err)
 	}
