@@ -51,6 +51,7 @@ func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, pb.ErrNum, err
 	accountFindRsp,err := (*RemoteDataBase.account).AccountFindByPhone(ctx,accountFindReq)
 	if err != nil {
 		log.Printf("fail to find account: %v",err)
+		return nil, pb.ErrNum_ACCOUNT_NOT_EXIST, err
 	}
 
 	// if account does not exist

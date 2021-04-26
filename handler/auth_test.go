@@ -28,24 +28,73 @@ func receive(sess *kcp.UDPSession) {
 			log.Println(err)
 		}
 
-		log.Println(msg.ErrNum)
-		switch msg.MsgCode {
-		case pb.MsgCode_PING_PONG:
-		case pb.MsgCode_SIGN_IN:
-			log.Println("Receive signIn response")
-			log.Printf("%+v",msg.Response.SignInResponse)
-		case pb.MsgCode_SIGN_UP:
-			log.Println("Receive signUp response")
-			log.Printf("%+v",msg.Response.SignUpResponse)
-		case pb.MsgCode_REGISTER_ADDR:
-			log.Println("Receive register response")
-			log.Printf("%+v",msg.Response.RegisterResponse)
-		default:
-			log.Println("Unknown response type")
+		switch msg.ErrNum {
+		case pb.ErrNum_REGULAR_MSG:
+			switch msg.MsgCode {
+			case pb.MsgCode_PING_PONG:
+			case pb.MsgCode_SIGN_IN:
+				log.Println("Receive signIn response")
+				log.Printf("%+v",msg.Response.SignInResponse)
+			case pb.MsgCode_SIGN_UP:
+				log.Println("Receive signUp response")
+				log.Printf("%+v",msg.Response.SignUpResponse)
+			case pb.MsgCode_REGISTER_ADDR:
+				log.Println("Receive register response")
+				log.Printf("%+v",msg.Response.RegisterResponse)
+			default:
+				log.Println("Unknown response type")
+			}
+		case pb.ErrNum_WRONG_PHONE_FORMAT:
+			log.Println(msg.SeqId,msg.ErrNum)
+		case pb.ErrNum_ACCOUNT_MISMATCH:
+			log.Println(msg.SeqId,msg.ErrNum)
+		case pb.ErrNum_DUPLICATE_PHONE:
+			log.Println(msg.SeqId,msg.ErrNum)
 		}
 	}
 }
 
+func TestAuth_SignIn(t *testing.T) {
+	fmt.Println("Starting to test auth service")
+	phones := []string{
+		"15251859786",
+		"15251859995",
+		"152586587654",
+		"dfhdjfhjdfh",
+	}
+	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
+	if sess,err := kcp.DialWithOptions(raddr,nil,0,0); err == nil {
+		go receive(sess)
+
+		for i :=  0; i < len(phones);i++ {
+			log.Println("Preparing data to send")
+			req  := &pb.GMessage{
+				MsgType:  pb.MsgType_REQUEST,
+			}
+
+			req.MsgCode = pb.MsgCode_SIGN_IN
+			req.Request = &pb.Request{SignInRequest: &pb.SignInRequest{
+				MobilePhone: phones[i],
+				Password:    "22223",
+			}}
+			log.Printf("Sending SignIn request, seqID %d\n", i)
+
+			req.SeqId = int32(i)
+			data,err := proto.Marshal(req)
+			if err != nil {
+				log.Println(err)
+			}
+
+			if _,err := sess.Write(data); err == nil {
+				log.Println("Send data done")
+			}
+		}
+
+		time.Sleep(5 *time.Second)
+	} else {
+		log.Fatalln(err)
+	}
+}
 
 func TestAuth(t *testing.T) {
 	fmt.Println("Starting to test auth service")
@@ -53,7 +102,7 @@ func TestAuth(t *testing.T) {
 
 	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
 	_ = raddr
-	phoneNum := rand.Intn(1000) + 15251859785
+	phoneNum := rand.Intn(10) + 15251859785
 	if sess,err :=  kcp.DialWithOptions(raddr,nil,0,0); err == nil {
 		go receive(sess)
 
