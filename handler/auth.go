@@ -55,30 +55,12 @@ func (a *Auth) SignIn(req *pb.SignInRequest) (*pb.SignInResponse, pb.ErrNum, err
 
 	// if account does not exist
 	if accountFindRsp.Account.Delete == true {
-		return &pb.SignInResponse{
-			IsLogin:  false,
-			PlayerId: 0,
-			Addr:     &pb.Address{
-				Ip:   config.REMOTE_CLB,
-				Port: int32(config.REMOTE_PORT),
-			},
-		},
-		pb.ErrNum_ACCOUNT_NOT_EXIST,
-		err
+		return nil, pb.ErrNum_ACCOUNT_NOT_EXIST, err
 		}
 
 	// if password does not match
 	if accountFindRsp.Account.LoginPassword != req.Password  {
-		return &pb.SignInResponse{
-			IsLogin:  false,
-			PlayerId: 0,
-			Addr:     &pb.Address{
-				Ip:   config.REMOTE_CLB,
-				Port: int32(config.REMOTE_PORT),
-			},
-		},
-		pb.ErrNum_ACCOUNT_MISMATCH,
-		err
+		return nil, pb.ErrNum_ACCOUNT_MISMATCH, err
 	}
 
 

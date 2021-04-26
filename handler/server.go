@@ -5,6 +5,7 @@ import (
 	pb "github.com/imilano/auth/proto/auth"
 	"github.com/xtaci/kcp-go"
 	"log"
+	"regexp"
 )
 
 type Server struct {
@@ -73,24 +74,36 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 		switch msg.MsgCode {
 		case pb.MsgCode_SIGN_IN:
 			log.Printf("Receive SignIn Request, seqId %d\n",msg.SeqId)
-			r,errNum, err := srv.Auth.SignIn(msg.Request.GetSignInRequest())
-			if err != nil {
-				log.Println(err)
-			}
+			if matchPhone(msg.Request.SignInRequest.MobilePhone) {
+				r, errNum, err := srv.Auth.SignIn(msg.Request.GetSignInRequest())
+				if err != nil {
+					log.Println(err)
+				}
 
-			rsp.ErrNum = errNum
+				rsp.ErrNum = errNum
+				rsp.Response = &pb.Response{SignInResponse: r}
+			} else {
+				log.Println("Wrong phone format")
+				rsp.ErrNum = pb.ErrNum_WRONG_PHONE_FORMAT
+			}
 			rsp.MsgCode = pb.MsgCode_SIGN_IN
-			rsp.Response  = &pb.Response{SignInResponse: r}
+
 		case pb.MsgCode_SIGN_UP:
 			log.Printf("Receive SignUP Request,seqId %d\n",msg.SeqId)
-			r,err := srv.Auth.SignUp(msg.Request.GetSignUpRequest())
-			if err != nil {
-				log.Println(err)
-			}
+			if matchPhone(msg.Request.SignUpRequest.MobilePhone) {
+				r, err := srv.Auth.SignUp(msg.Request.GetSignUpRequest())
+				if err != nil {
+					log.Println(err)
+				}
 
-			rsp.ErrNum = pb.ErrNum_REGULAR_MSG
-			rsp.MsgCode  = pb.MsgCode_SIGN_UP
-			rsp.Response = &pb.Response{SignUpResponse: r}
+				rsp.ErrNum = pb.ErrNum_REGULAR_MSG
+				rsp.Response = &pb.Response{SignUpResponse: r}
+			} else {
+				log.Println("Wrong phone format")
+				rsp.ErrNum = pb.ErrNum_WRONG_PHONE_FORMAT
+			}
+			rsp.MsgCode = pb.MsgCode_SIGN_UP
+
 		case pb.MsgCode_REGISTER_ADDR:
 			log.Printf("Receive RequestAddress request, seqId %d\n",msg.SeqId)
 			r,err := srv.Auth.Register(msg.Request.GetRegisterRequest())
@@ -101,6 +114,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 			rsp.ErrNum = pb.ErrNum_REGULAR_MSG
 			rsp.MsgCode = pb.MsgCode_REGISTER_ADDR
 			rsp.Response = &pb.Response{RegisterResponse: r}
+
 		case pb.MsgCode_PING_PONG:
 			log.Println("Receive PingPong request")
 			r,err := srv.Auth.PingPong(msg.Request.GetPing())
@@ -131,5 +145,14 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func matchPhone(s string) bool {
+	reg := regexp.MustCompile("^1(3\\d|4[5-9]|5[0-35-9]|6[567]|7[0-8]|8\\d|9[0-35-9])\\d{8}$")
+	if reg == nil {
+		log.Fatalln("regexp err")
+	}
+
+	return reg.MatchString(s)
 }
 

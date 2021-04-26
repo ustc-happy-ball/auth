@@ -8,6 +8,7 @@ import (
 	"github.com/xtaci/kcp-go"
 	"log"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"testing"
 	"time"
@@ -53,7 +54,7 @@ func TestAuth(t *testing.T) {
 	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
 	_ = raddr
 	phoneNum := rand.Intn(1000) + 15251859785
-	if sess,err :=  kcp.DialWithOptions("127.0.0.1:8889",nil,0,0); err == nil {
+	if sess,err :=  kcp.DialWithOptions(raddr,nil,0,0); err == nil {
 		go receive(sess)
 
 		var oldPhone string
@@ -103,5 +104,24 @@ func TestAuth(t *testing.T) {
 		}
 	} else {
 		log.Fatalln(err)
+	}
+}
+
+func TestPhone(t *testing.T) {
+	reg := regexp.MustCompile("^1(3\\d|4[5-9]|5[0-35-9]|6[567]|7[0-8]|8\\d|9[0-35-9])\\d{8}$")
+	if reg == nil {
+		log.Fatalln("regexp err")
+	}
+
+	strs := []string{
+		"111",
+		"jfdkfj",
+		"133333333333",
+		"15251859786",
+	}
+	for i := range strs {
+		if reg.MatchString(strs[i]) {
+			log.Println(strs[i], "match")
+		}
 	}
 }
