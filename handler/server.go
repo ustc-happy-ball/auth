@@ -5,7 +5,6 @@ import (
 	pb "github.com/imilano/auth/proto/auth"
 	"github.com/xtaci/kcp-go"
 	"log"
-	"regexp"
 )
 
 type Server struct {
@@ -45,15 +44,16 @@ func (s *Server)Serv () {
 func handler(conn *kcp.UDPSession,srv *Server) {
 	defer conn.Close()
 	buf := make([]byte,1024)
-	for {
-		n,err := conn.Read(buf)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		go dispatcher(conn,buf[:n],srv)
+	// 不用维持状态，所以并不需要一直进行监听
+	//for {
+	n,err := conn.Read(buf)
+	if err != nil {
+		log.Println(err)
+		return
 	}
+
+	go dispatcher(conn,buf[:n],srv)
+	//}
 }
 
 // dispatcher to dispatch message according to MsyType
@@ -64,66 +64,23 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 		log.Println(err)
 	}
 
-	var rsp pb.GMessage
-	rsp.MsgType = pb.MsgType_RESPONSE
-	rsp.SeqId = msg.SeqId
-	//defer conn.Close()
-
+	var rsp *pb.GMessage
 	switch msg.MsgType {
 	case pb.MsgType_REQUEST:
 		switch msg.MsgCode {
 		case pb.MsgCode_SIGN_IN:
 			log.Printf("Receive SignIn Request, seqId %d\n",msg.SeqId)
-			if matchPhone(msg.Request.SignInRequest.MobilePhone) {
-				r, errNum, err := srv.Auth.SignIn(msg.Request.GetSignInRequest())
-				if err != nil {
-					log.Println(err)
-				}
-
-				rsp.ErrNum = errNum
-				rsp.Response = &pb.Response{SignInResponse: r}
-			} else {
-				log.Println("Wrong phone format")
-				rsp.ErrNum = pb.ErrNum_WRONG_PHONE_FORMAT
-			}
-			rsp.MsgCode = pb.MsgCode_SIGN_IN
-
+			rsp,_= srv.Auth.SignIn(&msg)
 		case pb.MsgCode_SIGN_UP:
 			log.Printf("Receive SignUP Request,seqId %d\n",msg.SeqId)
-			if matchPhone(msg.Request.SignUpRequest.MobilePhone) {
-				r, err := srv.Auth.SignUp(msg.Request.GetSignUpRequest())
-				if err != nil {
-					log.Println(err)
-				}
-
-				rsp.ErrNum = pb.ErrNum_REGULAR_MSG
-				rsp.Response = &pb.Response{SignUpResponse: r}
-			} else {
-				log.Println("Wrong phone format")
-				rsp.ErrNum = pb.ErrNum_WRONG_PHONE_FORMAT
-			}
-			rsp.MsgCode = pb.MsgCode_SIGN_UP
-
+			rsp,_ = srv.Auth.SignUp(&msg)
 		case pb.MsgCode_REGISTER_ADDR:
 			log.Printf("Receive RequestAddress request, seqId %d\n",msg.SeqId)
-			r,err := srv.Auth.Register(msg.Request.GetRegisterRequest())
-			if err != nil {
-				log.Println(err)
-			}
-
-			rsp.ErrNum = pb.ErrNum_REGULAR_MSG
-			rsp.MsgCode = pb.MsgCode_REGISTER_ADDR
-			rsp.Response = &pb.Response{RegisterResponse: r}
+			rsp,_ = srv.Auth.Register(&msg)
 
 		case pb.MsgCode_PING_PONG:
 			log.Println("Receive PingPong request")
-			r,err := srv.Auth.PingPong(msg.Request.GetPing())
-			if err != nil {
-				log.Println(err)
-			}
-
-			rsp.MsgCode = pb.MsgCode_PING_PONG
-			rsp.Response = &pb.Response{Pong: r}
+			rsp,_ = srv.Auth.PingPong(&msg)
 		default:
 			log.Println("MsgCode unknown")
 		}
@@ -135,7 +92,7 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 		log.Println("MsgType unknown")
 	}
 
-	b,err := proto.Marshal(&rsp)
+	b,err := proto.Marshal(rsp)
 	if err != nil {
 		log.Println(err)
 	}
@@ -145,14 +102,8 @@ func dispatcher(conn *kcp.UDPSession, buf []byte, srv *Server) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	defer conn.Close()
 }
 
-func matchPhone(s string) bool {
-	reg := regexp.MustCompile("^1(3\\d|4[5-9]|5[0-35-9]|6[567]|7[0-8]|8\\d|9[0-35-9])\\d{8}$")
-	if reg == nil {
-		log.Fatalln("regexp err")
-	}
-
-	return reg.MatchString(s)
-}
 

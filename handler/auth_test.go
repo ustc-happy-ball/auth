@@ -46,7 +46,7 @@ func receive(sess *kcp.UDPSession) {
 			}
 		case pb.ErrNum_WRONG_PHONE_FORMAT:
 			log.Println(msg.SeqId,msg.ErrNum)
-		case pb.ErrNum_ACCOUNT_MISMATCH:
+		case pb.ErrNum_PASSWORD_MISMATCH:
 			log.Println(msg.SeqId,msg.ErrNum)
 		case pb.ErrNum_DUPLICATE_PHONE:
 			log.Println(msg.SeqId,msg.ErrNum)
