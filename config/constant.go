@@ -10,8 +10,8 @@ var (
 	PORT = "8889"
 
 	// CLB addr for dgs
-	REMOTE_CLB  = "150.158.238.236"
-	REMOTE_PORT = 32000
+	REMOTE_CLB  = "150.158.216.120"
+	REMOTE_PORT = 32001
 
 	DEBUG = false
 )
