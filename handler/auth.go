@@ -42,13 +42,18 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	ctx,cancel := context.WithTimeout(context.Background(),2 * time.Second)
 	defer cancel()
 
-	if !config.DEBUG {
-		_, err := (*RemoteDataBase.account).AccountAdd(ctx, accountAddReq)
-		if err != nil {
-			log.Printf("fail to add account: %v\n", err)
-		}
+	//if !config.DEBUG {
+	_, err := (*RemoteDataBase.account).AccountAdd(ctx, accountAddReq)
+	if err != nil {
+		log.Printf("fail to add account: %v\n", err)
+		return &pb.GMessage{
+			MsgType:  pb.MsgType_RESPONSE,
+			MsgCode:  pb.MsgCode_SIGN_UP,
+			SeqId:    reqMsg.SeqId,
+			ErrNum:   pb.ErrNum_DUPLICATE_PHONE,
+		},nil
 	}
-	// TODO 如果 account 的信息重复了
+	//}
 	return &pb.GMessage{
 		MsgType:  pb.MsgType_RESPONSE,
 		MsgCode:  pb.MsgCode_SIGN_UP,
@@ -65,6 +70,7 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	},nil
 }
 
+// TODO 增加排名信息
 // SignIn for signing in account
 func (a *Auth) SignIn(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	req := reqMsg.Request.SignInRequest
