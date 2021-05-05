@@ -43,7 +43,7 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	defer cancel()
 
 	//if !config.DEBUG {
-	_, err := (*RemoteDataBase.account).AccountAdd(ctx, accountAddReq)
+	accountAddRsp, err := (*RemoteDataBase.account).AccountAdd(ctx, accountAddReq)
 	if err != nil {
 		log.Printf("fail to add account: %v\n", err)
 		return &pb.GMessage{
@@ -54,6 +54,18 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 		},nil
 	}
 	//}
+
+	// Add account info to player collection
+	playerAddReq := db.PlayerAddRequest{Player: &db.Player{
+		PlayerId:     int32(playerID),
+		AccountId:    accountAddRsp.ObjectId,
+		HighestScore: 0,
+		HighestRank:  0,
+		CreateAt:     time.Now().UnixNano(),
+		UpdateAt:     time.Now().UnixNano(),
+	}}
+	go a.addPlayer(&playerAddReq)
+
 	return &pb.GMessage{
 		MsgType:  pb.MsgType_RESPONSE,
 		MsgCode:  pb.MsgCode_SIGN_UP,
@@ -70,7 +82,19 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	},nil
 }
 
-// TODO 增加排名信息
+func (a *Auth) addPlayer(req *db.PlayerAddRequest) error {
+	log.Println("Add player info to db: ", req.Player)
+	ctx := context.Background()
+	_,err := (*RemoteDataBase.player).PlayerAdd(ctx,req)
+	if err != nil {
+		log.Println("fail to add player info to db: ", req.Player)
+		return err
+	}
+
+	return nil
+}
+
+//TODO 增加排名信息
 // SignIn for signing in account
 func (a *Auth) SignIn(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	req := reqMsg.Request.SignInRequest

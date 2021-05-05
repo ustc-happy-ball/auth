@@ -10,6 +10,8 @@ service AccountService {
 service PlayerService {
   rpc PlayerFindByPlayerId(PlayerFindByPlayerIdRequest) returns (PlayerFindByPlayerIdResponse) {}
   rpc PlayerAdd(PlayerAddRequest) returns (PlayerAddResponse) {}
+  rpc PlayerUpdateHighestScoreByPlayerId(PlayerUpdateHighestScoreByPlayerIdRequest) returns (PlayerUpdateHighestScoreByPlayerIdResponse) {}
+  rpc PlayerGetRankByPlayerId(PlayerGetRankByPlayerIdRequest) returns (PlayerGetRankByPlayerIdResponse) {}
 }
 
 message AccountFindByPhoneRequest {
@@ -25,7 +27,21 @@ message AccountAddRequest {
 }
 
 message AccountAddResponse {
+  string objectId = 1;
 }
+
+message Account {
+  string objectId = 1; //objectId
+  int32 playerId = 2;
+  string loginPassword = 3;
+  bool delete = 4;
+  string phone = 5;
+  int64 recentLogin = 6;
+  int64 createAt = 7;
+  int64 updateAt = 8;
+}
+
+
 
 message PlayerFindByPlayerIdRequest {
   int32 playerId = 1;
@@ -43,22 +59,28 @@ message PlayerAddResponse {
 
 }
 
-message Account {
-  string objectId = 1; //objectId
-  int32 playerId = 2;
-  string loginPassword = 3;
-  bool delete = 4;
-  string phone = 5;
-  int64 recentLogin = 6;
-  int64 createAt = 7;
-  int64 updateAt = 8;
+message PlayerUpdateHighestScoreByPlayerIdRequest {
+  int32 playerId = 1;
+  int32 highestScore = 2;
+}
+
+message PlayerUpdateHighestScoreByPlayerIdResponse {
+
+}
+
+message PlayerGetRankByPlayerIdRequest {
+  int32 PlayerId = 1;
+}
+
+message PlayerGetRankByPlayerIdResponse {
+  int32 rank = 1;
 }
 
 message Player {
-  int32 playerId = 2;
-  string accountId = 3;
-  int32 highestScore = 4;
-  int32 highestRank = 5;
-  int64 createAt = 6;
-  int64 updateAt = 7;
+  int32 playerId = 1;
+  string accountId = 2;
+  int32 highestScore = 3;
+  int32 highestRank = 4;
+  int64 createAt = 5;
+  int64 updateAt = 6;
 }

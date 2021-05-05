@@ -11,6 +11,7 @@ var RemoteDataBase *DataBase
 
 type DataBase struct {
 	account *db.AccountServiceClient
+	player *db.PlayerServiceClient
 }
 
 func InitDataBase(addr string) {
@@ -21,6 +22,7 @@ func InitDataBase(addr string) {
 	}
 
 	accountClient := db.NewAccountServiceClient(conn)
-	RemoteDataBase = &DataBase{account: &accountClient}
+	playerClient := db.NewPlayerServiceClient(conn)
+	RemoteDataBase = &DataBase{account: &accountClient, player: &playerClient}
 }
 
