@@ -33,7 +33,7 @@ func receive(sess *kcp.UDPSession) {
 			case pb.MsgCode_PING_PONG:
 			case pb.MsgCode_SIGN_IN:
 				log.Println("Receive signIn response")
-				log.Printf("%+v",msg.Response.SignInResponse)
+				log.Printf("%v",msg.Response.SignInResponse)
 			case pb.MsgCode_SIGN_UP:
 				log.Println("Receive signUp response")
 				log.Printf("%+v",msg.Response.SignUpResponse)

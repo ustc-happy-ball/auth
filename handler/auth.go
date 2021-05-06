@@ -59,8 +59,8 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	playerAddReq := db.PlayerAddRequest{Player: &db.Player{
 		PlayerId:     int32(playerID),
 		AccountId:    accountAddRsp.ObjectId,
-		HighestScore: 0,
-		HighestRank:  0,
+		HighestScore: -1,
+		HighestRank:  -1,
 		CreateAt:     time.Now().UnixNano(),
 		UpdateAt:     time.Now().UnixNano(),
 	}}
