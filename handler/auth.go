@@ -64,7 +64,19 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 		CreateAt:     time.Now().UnixNano(),
 		UpdateAt:     time.Now().UnixNano(),
 	}}
-	go a.addPlayer(&playerAddReq)
+
+	doneCh := make(chan int)
+	go func() {
+		log.Println("Add player info to db: ", playerAddReq.Player)
+		ctx := context.Background()
+		_,err := (*RemoteDataBase.player).PlayerAdd(ctx,&playerAddReq)
+		if err != nil {
+			log.Println("fail to add player info to db: ", playerAddReq.Player)
+		}
+
+		doneCh <- 1
+	}()
+	<- doneCh
 
 	return &pb.GMessage{
 		MsgType:  pb.MsgType_RESPONSE,
@@ -82,19 +94,18 @@ func (a *Auth) SignUp(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	},nil
 }
 
-func (a *Auth) addPlayer(req *db.PlayerAddRequest) error {
-	log.Println("Add player info to db: ", req.Player)
-	ctx := context.Background()
-	_,err := (*RemoteDataBase.player).PlayerAdd(ctx,req)
-	if err != nil {
-		log.Println("fail to add player info to db: ", req.Player)
-		return err
-	}
+//func (a *Auth) addPlayer(req *db.PlayerAddRequest) error {
+//	log.Println("Add player info to db: ", req.Player)
+//	ctx := context.Background()
+//	_,err := (*RemoteDataBase.player).PlayerAdd(ctx,req)
+//	if err != nil {
+//		log.Println("fail to add player info to db: ", req.Player)
+//		return err
+//	}
+//
+//	return nil
+//}
 
-	return nil
-}
-
-//TODO 增加排名信息
 // SignIn for signing in account
 func (a *Auth) SignIn(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	req := reqMsg.Request.SignInRequest
@@ -156,12 +167,26 @@ func (a *Auth) SignIn(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 		},nil
 	}
 
+	getPlayerInfoReq := db.AccountFindPlayerByAccountIdRequest{AccountId: accountFindRsp.Account.ObjectId}
+	ch := make(chan *db.AccountFindPlayerByAccountIdResponse)
+	go func() {
+		log.Println("Get player info...")
+		getPlayerInfoRsp,err := (*RemoteDataBase.account).AccountFindPlayerByAccountId(context.Background(), &getPlayerInfoReq)
+		if err != nil {
+			log.Println("Fail to get player info according to account object id")
+		}
+		ch <- getPlayerInfoRsp
+	}()
+	getPlayerInfoRsp := <- ch
+
 	return &pb.GMessage{
 		MsgType:  pb.MsgType_RESPONSE,
 		MsgCode:  pb.MsgCode_SIGN_IN,
 		Response: &pb.Response{SignInResponse: &pb.SignInResponse{
 			IsLogin:  true,
 			PlayerId: accountFindRsp.Account.PlayerId,
+			HighestRank: getPlayerInfoRsp.PlayerInfo.HighestRank,
+			HighestScore: getPlayerInfoRsp.PlayerInfo.HighestScore,
 			Addr:     &pb.Address{
 				Ip:   config.REMOTE_CLB,
 				Port: int32(config.REMOTE_PORT),

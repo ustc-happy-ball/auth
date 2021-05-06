@@ -5,6 +5,7 @@ package databaseGrpc;
 service AccountService {
   rpc AccountFindByPhone(AccountFindByPhoneRequest) returns (AccountFindByPhoneResponse) {}
   rpc AccountAdd(AccountAddRequest) returns (AccountAddResponse) {}
+  rpc AccountFindPlayerByAccountId(AccountFindPlayerByAccountIdRequest) returns (AccountFindPlayerByAccountIdResponse) {}
 }
 
 service PlayerService {
@@ -28,6 +29,14 @@ message AccountAddRequest {
 
 message AccountAddResponse {
   string objectId = 1;
+}
+
+message AccountFindPlayerByAccountIdRequest {
+  string accountId = 1;
+}
+
+message AccountFindPlayerByAccountIdResponse {
+  Player playerInfo = 1;
 }
 
 message Account {

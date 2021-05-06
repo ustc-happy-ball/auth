@@ -62,6 +62,8 @@ message SignInResponse {
   bool isLogin = 1;
   int32 playerId = 2;
   Address addr = 3;
+  int32 highestRank = 4;
+  int32 highestScore = 5;
 }
 
 // Used for test
