@@ -106,13 +106,13 @@ func TestAuth(t *testing.T) {
 
 	raddr := "150.158.238.236" + ":" + "32000"
 	_ = raddr
-	phoneNum := rand.Intn(100) + 15251859785
+	phoneNum := rand.Intn(1000) + 15251859785
 	if sess,err :=  kcp.DialWithOptions(raddr,nil,0,0); err == nil {
 		go receive(sess)
 
 		var oldPhone string
 		//var objectID string
-		for  times != 4 {
+		for  times != 8 {
 			//log.Println("Preparing data to send")
 			req  := &pb.GMessage{
 				MsgType:  pb.MsgType_REQUEST,
