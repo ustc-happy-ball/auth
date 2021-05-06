@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"github.com/imilano/auth/config"
 	pb "github.com/imilano/auth/proto/auth"
 	"github.com/xtaci/kcp-go"
 	"log"
@@ -59,12 +58,15 @@ func receive(sess *kcp.UDPSession) {
 func TestAuth_SignIn(t *testing.T) {
 	fmt.Println("Starting to test auth service")
 	phones := []string{
-		"15251859786",
-		"15251859995",
-		"152586587654",
-		"dfhdjfhjdfh",
+		//"15251859786",
+		//"15251859995",
+		//"152586587654",
+		//"dfhdjfhjdfh",
+		"15251859866",
+		"15251859868",
 	}
-	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
+	//raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
+	raddr := "150.158.238.236" + ":" + "32000"
 	if sess,err := kcp.DialWithOptions(raddr,nil,0,0); err == nil {
 		go receive(sess)
 
@@ -77,7 +79,7 @@ func TestAuth_SignIn(t *testing.T) {
 			req.MsgCode = pb.MsgCode_SIGN_IN
 			req.Request = &pb.Request{SignInRequest: &pb.SignInRequest{
 				MobilePhone: phones[i],
-				Password:    "22223",
+				Password:    "2222",
 			}}
 			log.Printf("Sending SignIn request, seqID %d\n", i)
 
@@ -102,22 +104,23 @@ func TestAuth(t *testing.T) {
 	fmt.Println("Starting to test auth service")
 	var times int
 
-	raddr := config.REMOTE_CLB + ":" + strconv.Itoa(config.REMOTE_PORT)
+	raddr := "150.158.238.236" + ":" + "32000"
 	_ = raddr
-	phoneNum := rand.Intn(10) + 15251859785
-	if sess,err :=  kcp.DialWithOptions("127.0.0.1:8889",nil,0,0); err == nil {
+	phoneNum := rand.Intn(100) + 15251859785
+	if sess,err :=  kcp.DialWithOptions(raddr,nil,0,0); err == nil {
 		go receive(sess)
 
 		var oldPhone string
-		for  times != 12 {
-			log.Println("Preparing data to send")
+		//var objectID string
+		for  times != 4 {
+			//log.Println("Preparing data to send")
 			req  := &pb.GMessage{
 				MsgType:  pb.MsgType_REQUEST,
 			}
 
 
 			phone := strconv.Itoa(phoneNum)
-			switch times%3 {
+			switch times%2 {
 			case 1:
 				req.MsgCode = pb.MsgCode_SIGN_IN
 				req.Request = &pb.Request{SignInRequest: &pb.SignInRequest{
@@ -132,10 +135,10 @@ func TestAuth(t *testing.T) {
 					Password:    "2222",
 				}}
 				log.Printf("Sending SignUp request, seqID %d\n", times)
-			case 2:
-				req.MsgCode = pb.MsgCode_REGISTER_ADDR
-				req.Request = &pb.Request{RegisterRequest: &pb.RegisterRequest{}}
-				log.Printf("Sending RegisterAddr request, seqID %d\n",times)
+			//case 2:
+			//	req.MsgCode = pb.MsgCode_REGISTER_ADDR
+			//	req.Request = &pb.Request{RegisterRequest: &pb.RegisterRequest{}}
+			//	log.Printf("Sending RegisterAddr request, seqID %d\n",times)
 			}
 
 			req.SeqId = int32(times)
@@ -147,6 +150,7 @@ func TestAuth(t *testing.T) {
 			if _,err := sess.Write(data); err == nil {
 				log.Println("Send data done")
 			}
+
 
 			times++
 			oldPhone = phone
