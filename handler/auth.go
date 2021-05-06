@@ -179,7 +179,7 @@ func (a *Auth) SignIn(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 	}()
 	getPlayerInfoRsp := <- ch
 
-	log.Println("HighestRank: ",getPlayerInfoRsp.PlayerInfo.HighestRank, "HighestScore: ", getPlayerInfoRsp.PlayerInfo.HighestScore)
+	log.Printf("GetPlayerInfoRsp: %+v\n", getPlayerInfoRsp)
 	return &pb.GMessage{
 		MsgType:  pb.MsgType_RESPONSE,
 		MsgCode:  pb.MsgCode_SIGN_IN,
