@@ -13,7 +13,7 @@
 #
 # 3. Change the values for the TKE_IMAGE_URL, TKE_REGION, TKE_CLUSTER_ID and DEPLOYMENT_NAME environment variables (below).
 
-name: CI/CD for auth
+name: CI/CD
 
 on:
   push:
@@ -41,11 +41,11 @@ jobs:
       # Build
       - name: Build Docker image
         run: |
-          docker build -t ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA} .
+          docker build -t ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA} ./deployments/
 
       - name: Login TKE Registry
         run: |
-          docker login -u ${{ secrets.TENCENT_CLOUD_ACCOUNT_ID }} -p ${{ secrets.TKE_REGISTRY_PASSWORD }} ${TKE_IMAGE_URL}
+          docker login -u ${{ secrets.RTENCENT_CLOUD_ACCOUNT_ID }} -p ${{ secrets.RTKE_REGISTRY_PASSWORD }} ${TKE_IMAGE_URL}
       # Push the Docker image to TKE Registry
       - name: Publish image to TKE Registry
         run: |
@@ -57,8 +57,8 @@ jobs:
       - name: Set up ~/.kube/config for connecting TKE cluster
         uses: TencentCloud/tke-cluster-credential-action@v1
         with:
-          secret_id: ${{ secrets.TENCENT_CLOUD_SECRET_ID }}
-          secret_key: ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
+          secret_id: ${{ secrets.RTENCENT_CLOUD_SECRET_ID }}
+          secret_key: ${{ secrets.RTENCENT_CLOUD_SECRET_KEY }}
           tke_region: ${{ env.TKE_REGION }}
           cluster_id: ${{ env.TKE_CLUSTER_ID }}
       #      - name: Creating test namespace
@@ -72,7 +72,7 @@ jobs:
       - name: Deploy To TKE
         run: |
           ./kustomize edit set image ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA}
-          ./kustomize build . | kubectl apply  -f -
+          ./kustomize build ./deployments | kubectl apply  -f -
           kubectl rollout status deployment/${DEPLOYMENT_NAME}
           kubectl get services -o wide
 #          kubectl rollout status deployment/${DEPLOYMENT_NAME} -n=${NAMESPACE}
