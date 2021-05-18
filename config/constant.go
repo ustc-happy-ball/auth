@@ -11,7 +11,7 @@ var (
 
 	// CLB addr for dgs
 	REMOTE_CLB  = "81.69.183.169"
-	REMOTE_PORT = 32002
+	REMOTE_PORT = 8889
 
 	DEBUG = false
 )
