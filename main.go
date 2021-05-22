@@ -1,22 +1,21 @@
 package main
 
 import (
-	"flag"
 	"github.com/imilano/auth/config"
 	"github.com/imilano/auth/handler"
 	"log"
 )
 
-func cmd() {
-	var debug bool
-	flag.BoolVar(&debug,"DEBUG", false,"Whether to open debug flag")
-	flag.Parse()
-
-	if debug == true {
-		log.Println("Starting DEBUG mode...")
-		config.DEBUG = true
-	}
-}
+//func cmd() {
+//	var debug bool
+//	flag.BoolVar(&debug,"DEBUG", false,"Whether to open debug flag")
+//	flag.Parse()
+//
+//	if debug == true {
+//		log.Println("Starting DEBUG mode...")
+//		config.DEBUG = true
+//	}
+//}
 
 func main() {
 	//cmd()

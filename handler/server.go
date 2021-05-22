@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"github.com/golang/protobuf/proto"
 	pb "github.com/imilano/auth/proto/auth"
 	"github.com/xtaci/kcp-go"
+	"google.golang.org/protobuf/proto"
 	"log"
 )
 

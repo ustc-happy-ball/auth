@@ -30,15 +30,37 @@ env:
   NAME: auth
 
 jobs:
+  go-fmt:
+    name: Fmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fmt
+        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+  go-test:
+    #    strategy:
+    #      matrix:
+    #        go-version: [ 1.14.x ]
+    runs-on: ubuntu-latest
+    name: Test
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: run tests
+        run: go test -json ./... > test.json
+
+      - name: Annotate tests
+        if: always()
+        uses: guyarb/golang-test-annotations@v0.3.0
+        with:
+          test-results: test.json
+
   setup-build-publish-deploy:
     name: Build, push and deploy to TKE
     runs-on: ubuntu-latest
     needs:
-      - Lint
       - Test
       - Fmt
-      - ErrCheck
-      - SecurityCheck
     steps:
       - name: Checkout
         uses: actions/checkout@v2
