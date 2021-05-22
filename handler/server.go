@@ -42,7 +42,12 @@ func (s *Server)Serv () {
 
 // handler to handle every connection
 func handler(conn *kcp.UDPSession,srv *Server) {
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	buf := make([]byte,1024)
 	for {
 		n,err := conn.Read(buf)
