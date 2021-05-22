@@ -175,10 +175,11 @@ func TestPhone(t *testing.T) {
 		"jfdkfj",
 		"133333333333",
 		"15251859786",
+		"152518599883",
 	}
 	for i := range strs {
-		if reg.MatchString(strs[i]) {
-			log.Println(strs[i], "match")
+		if !reg.MatchString(strs[i]) {
+			log.Println(strs[i], "unmatch")
 		}
 	}
 }

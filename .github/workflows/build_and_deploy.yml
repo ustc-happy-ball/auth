@@ -33,16 +33,19 @@ jobs:
   setup-build-publish-deploy:
     name: Build, push and deploy to TKE
     runs-on: ubuntu-latest
+    needs:
+      - Lint
+      - Test
+      - Fmt
+      - ErrCheck
+      - SecurityCheck
     steps:
-
       - name: Checkout
         uses: actions/checkout@v2
-
       # Build
       - name: Build Docker image
         run: |
           docker build -t ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA} .
-
       - name: Login TKE Registry
         run: |
           docker login -u ${{ secrets.TENCENT_CLOUD_ACCOUNT_ID }} -p ${{ secrets.TKE_REGISTRY_PASSWORD }} ${TKE_IMAGE_URL}
