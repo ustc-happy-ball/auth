@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"log"
 	"math/rand"
+	"os"
 	"regexp"
 	"strconv"
 	"testing"
@@ -56,6 +57,7 @@ func receive(sess *kcp.UDPSession) {
 }
 
 func TestAuth_SignIn(t *testing.T) {
+	skipCI(t)
 	fmt.Println("Starting to test auth service")
 	phones := []string{
 		//"15251859786",
@@ -101,6 +103,7 @@ func TestAuth_SignIn(t *testing.T) {
 }
 
 func TestAuth(t *testing.T) {
+	skipCI(t)
 	fmt.Println("Starting to test auth service")
 	var times int
 
@@ -181,5 +184,12 @@ func TestPhone(t *testing.T) {
 		if !reg.MatchString(strs[i]) {
 			log.Println(strs[i], "unmatch")
 		}
+	}
+}
+
+
+func skipCI(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.Skip("Skipping testing in CI environment")
 	}
 }
