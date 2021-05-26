@@ -146,7 +146,7 @@ func (a *Auth) SignIn(reqMsg *pb.GMessage) (*pb.GMessage,error) {
 		},nil
 	}
 
-	if accountFindRsp.Account.Delete == true {
+	if accountFindRsp.Account.Delete {
 		return &pb.GMessage{
 			MsgType:  pb.MsgType_RESPONSE,
 			MsgCode:  pb.MsgCode_SIGN_IN,
